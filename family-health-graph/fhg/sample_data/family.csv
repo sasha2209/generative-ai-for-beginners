@@ -1,0 +1,7 @@
+relationship,condition,age_at_diagnosis,sex,deceased,name
+Mother,Breast cancer,46,female,no,
+Father,Heart attack,51,male,no,
+Father,Type 2 diabetes,58,male,no,
+Maternal aunt,Ovarian cancer,58,female,yes,Ruth
+Paternal grandfather,Colon cancer,72,male,yes,
+Brother,,,male,no,Sam

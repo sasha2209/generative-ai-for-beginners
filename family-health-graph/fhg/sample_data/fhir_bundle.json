@@ -1,0 +1,362 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "p1",
+        "gender": "female",
+        "birthDate": "1984-05-02"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E78.5",
+              "display": "Hyperlipidemia, unspecified"
+            }
+          ]
+        },
+        "onsetDateTime": "2022-08-15"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "13457-7",
+              "display": "LDL cholesterol (calculated)"
+            }
+          ]
+        },
+        "effectiveDateTime": "2026-03-10",
+        "valueQuantity": {
+          "value": 172,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4548-4",
+              "display": "Hemoglobin A1c"
+            }
+          ]
+        },
+        "effectiveDateTime": "2026-03-10",
+        "valueQuantity": {
+          "value": 5.9,
+          "unit": "%"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "39156-5",
+              "display": "Body mass index"
+            }
+          ]
+        },
+        "effectiveDateTime": "2026-03-10",
+        "valueQuantity": {
+          "value": 27.4,
+          "unit": "kg/m2"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85354-9",
+              "display": "Blood pressure panel"
+            }
+          ]
+        },
+        "effectiveDateTime": "2026-03-10",
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 134,
+              "unit": "mmHg"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 86,
+              "unit": "mmHg"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "status": "active",
+        "medicationCodeableConcept": {
+          "text": "Levothyroxine 50 mcg tablet"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "MTH"
+            }
+          ],
+          "text": "Mother"
+        },
+        "condition": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "254837009"
+                }
+              ],
+              "text": "Breast cancer"
+            },
+            "onsetAge": {
+              "value": 46,
+              "unit": "a",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "FTH"
+            }
+          ],
+          "text": "Father"
+        },
+        "condition": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "22298006"
+                }
+              ],
+              "text": "Myocardial infarction"
+            },
+            "onsetAge": {
+              "value": 51,
+              "unit": "a",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "44054006"
+                }
+              ],
+              "text": "Type 2 diabetes mellitus"
+            },
+            "onsetAge": {
+              "value": 58,
+              "unit": "a",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "MAUNT"
+            }
+          ],
+          "text": "Maternal aunt"
+        },
+        "deceasedBoolean": true,
+        "condition": [
+          {
+            "code": {
+              "text": "Ovarian cancer"
+            },
+            "onsetAge": {
+              "value": 58,
+              "unit": "a",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "PGRFTH"
+            }
+          ],
+          "text": "Paternal grandfather"
+        },
+        "deceasedBoolean": true,
+        "condition": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/sid/icd-10-cm",
+                  "code": "C18.9"
+                }
+              ],
+              "text": "Malignant neoplasm of colon, unspecified"
+            },
+            "onsetAge": {
+              "value": 72,
+              "unit": "a",
+              "system": "http://unitsofmeasure.org",
+              "code": "a"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "MGRMTH"
+            }
+          ],
+          "text": "Maternal grandmother"
+        },
+        "deceasedBoolean": true,
+        "condition": [
+          {
+            "code": {
+              "text": "Cancer"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "status": "completed",
+        "patient": {
+          "reference": "urn:uuid:p1"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "SIS"
+            }
+          ],
+          "text": "Sister"
+        },
+        "ageAge": {
+          "value": 39,
+          "unit": "a",
+          "system": "http://unitsofmeasure.org",
+          "code": "a"
+        }
+      }
+    }
+  ]
+}

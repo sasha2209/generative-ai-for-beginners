@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Family Health Graph</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --border: #e3e2dc;
+    --accent: #2f6f62; --accent-ink: #ffffff;
+    --high: #b4442f; --high-bg: #fbeeea; --mod: #9a6a12; --mod-bg: #fbf3e2; --info: #3d6191; --info-bg: #ecf1f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161715; --surface: #1f201e; --text: #ecebe6; --muted: #a09f98; --border: #33342f;
+      --accent: #5fb3a1; --accent-ink: #0d1a17;
+      --high: #f08a74; --high-bg: #3a2420; --mod: #e2b45c; --mod-bg: #362c19; --info: #8fb0e0; --info-bg: #1f2a3a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 20px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 16px;
+         grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
+  @media (max-width: 820px) { main { grid-template-columns: minmax(0, 1fr); } }
+  section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  h2 { font-size: 15px; margin: 0 0 10px; }
+  textarea { width: 100%; min-height: 140px; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+             background: var(--bg); color: var(--text); font: inherit; resize: vertical; }
+  button { font: inherit; border-radius: 8px; padding: 7px 12px; border: 1px solid var(--border);
+           background: var(--surface); color: var(--text); cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .insight { border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border-left: 4px solid; }
+  .insight.high { background: var(--high-bg); border-color: var(--high); }
+  .insight.moderate { background: var(--mod-bg); border-color: var(--mod); }
+  .insight.info { background: var(--info-bg); border-color: var(--info); }
+  .insight h3 { margin: 0 0 4px; font-size: 15px; }
+  .badge { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .high .badge { color: var(--high); } .moderate .badge { color: var(--mod); } .info .badge { color: var(--info); }
+  .insight ul { margin: 6px 0; padding-left: 18px; }
+  .insight details { margin-top: 6px; font-size: 13px; }
+  .insight a { color: inherit; }
+  .family { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .person { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+  .person strong { display: block; font-size: 13px; text-transform: capitalize; }
+  .side { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  #status { min-height: 20px; }
+  .disclaimer { font-size: 12px; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Family Health Graph</h1>
+  <p>Bring together your health records and your family's history to see what's worth discussing with your clinician.</p>
+</header>
+<main>
+  <div>
+    <section>
+      <h2>Add family history</h2>
+      <textarea id="text" placeholder="e.g. My mom had breast cancer at 46. Dad had a heart attack at 51."></textarea>
+      <div class="row">
+        <button class="primary" id="save-text">Add to my record</button>
+        <button id="preview-text">Preview</button>
+        <button id="fill-sample">Use sample text</button>
+      </div>
+      <p class="muted">Or import records from your health system:</p>
+      <div class="row">
+        <button id="load-fhir">Import sample FHIR record</button>
+        <button id="reset">Start over</button>
+      </div>
+      <p id="status" class="muted"></p>
+    </section>
+    <section style="margin-top:16px">
+      <h2>Your family</h2>
+      <div id="family" class="family"><span class="muted">No relatives yet.</span></div>
+    </section>
+  </div>
+  <section>
+    <h2>Insights</h2>
+    <div id="insights"><span class="muted">Add some history to see insights.</span></div>
+    <p id="disclaimer" class="disclaimer"></p>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LEVEL = { high: "Discuss soon", moderate: "Next visit", info: "Good to know" };
+let token = null;
+try { token = localStorage.getItem("fhg_token"); } catch (e) {}
+
+async function api(path, opts = {}) {
+  if (!token && path.startsWith("/v1/") && path !== "/v1/users") await ensureUser();
+  const res = await fetch(path, { ...opts, headers: { "Content-Type": "application/json",
+    ...(token ? { Authorization: "Bearer " + token } : {}), ...(opts.headers || {}) } });
+  if (res.status === 401 && path !== "/v1/users" && !opts._retried) { token = null; return api(path, { ...opts, _retried: true }); }
+  if (res.status === 204) return null;
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.detail || res.statusText);
+  return body;
+}
+let creating = null;  // share one sign-up between parallel first requests
+function ensureUser() {
+  creating = creating || api("/v1/users", { method: "POST" }).then((r) => {
+    token = r.token;
+    try { localStorage.setItem("fhg_token", token); } catch (e) {}
+  }).finally(() => { creating = null; });
+  return creating;
+}
+function status(msg) { $("status").textContent = msg; }
+
+function renderFamily(profile) {
+  const fam = profile.family || [];
+  if (!fam.length) { $("family").innerHTML = '<span class="muted">No relatives yet.</span>'; return; }
+  const side = (r) => r.startsWith("maternal") ? "Maternal" : r.startsWith("paternal") ? "Paternal"
+    : ["mother","father","sister","brother","son","daughter"].includes(r) ? "Immediate" : "Other";
+  $("family").innerHTML = fam.map((m) => `
+    <div class="person"><span class="side">${side(m.relationship)}</span>
+      <strong>${esc(m.relationship.replace(/_/g, " "))}${m.name ? " · " + esc(m.name) : ""}${m.deceased ? " †" : ""}</strong>
+      ${m.conditions.length ? m.conditions.map((c) => `${esc(c.name)}${c.onset_age != null ? ` (${c.age_estimated ? "~" : ""}${c.onset_age})` : ""}`).join("<br>")
+        : '<span class="muted">No known conditions</span>'}
+    </div>`).join("");
+}
+
+function renderInsights(report) {
+  $("disclaimer").textContent = report.disclaimer;
+  if (!report.insights.length) { $("insights").innerHTML = '<span class="muted">Nothing stands out yet.</span>'; return; }
+  $("insights").innerHTML = report.insights.map((i) => `
+    <div class="insight ${i.level}">
+      <span class="badge">${LEVEL[i.level]}</span>
+      <h3>${esc(i.title)}</h3>
+      <div>${esc(i.summary)}</div>
+      ${i.evidence.length ? `<ul>${i.evidence.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>` : ""}
+      <div><strong>What you can do:</strong> ${esc(i.recommendation)}</div>
+      <details><summary>Sources</summary>
+        ${i.references.map((r) => `<div><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>`).join("")}
+      </details>
+    </div>`).join("");
+}
+
+async function refresh() {
+  const [profile, report] = await Promise.all([api("/v1/profile"), api("/v1/insights")]);
+  renderFamily(profile); renderInsights(report);
+}
+
+$("save-text").onclick = async () => {
+  const text = $("text").value.trim(); if (!text) return;
+  try {
+    const r = await api("/v1/ingest/text", { method: "POST", body: JSON.stringify({ text }) });
+    status(r.warnings[0] || `Added ${r.merged.relatives_added} relatives, updated ${r.merged.relative_conditions} conditions.`);
+    $("text").value = ""; await refresh();
+  } catch (e) { status("Error: " + e.message); }
+};
+$("preview-text").onclick = async () => {
+  const text = $("text").value.trim(); if (!text) return;
+  const r = await api("/v1/ingest/text?preview=true", { method: "POST", body: JSON.stringify({ text }) });
+  const lines = r.parsed.family.map((m) => `${m.relationship.replace(/_/g, " ")}: ${m.conditions.map((c) => c.name + (c.onset_age != null ? " @" + c.onset_age : "")).join(", ")}`);
+  status(lines.length ? "Would add → " + lines.join(" · ") : (r.warnings[0] || "Nothing recognised."));
+};
+$("fill-sample").onclick = async () => { $("text").value = (await (await fetch("/sample/text")).json()).content; };
+$("load-fhir").onclick = async () => {
+  const bundle = await (await fetch("/sample/fhir")).json();
+  const r = await api("/v1/ingest/fhir", { method: "POST", body: JSON.stringify(bundle) });
+  status(`Imported ${r.merged.observations} lab results and ${r.merged.relatives_added} relatives.`);
+  await refresh();
+};
+$("reset").onclick = async () => {
+  if (token) await api("/v1/me", { method: "DELETE" }).catch(() => {});
+  token = null; try { localStorage.removeItem("fhg_token"); } catch (e) {}
+  status("Your data was deleted."); await refresh();
+};
+refresh().catch((e) => status("Error: " + e.message));
+</script>
+</body>
+</html>
